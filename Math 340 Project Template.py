@@ -111,7 +111,7 @@ def test_halls(priorities_filename,boy_set_label,girl_set_label):
 #return a set of touples.  Each touple represents a rogue pairing.  A stable pairing should
 #return an empty set.
 def find_rogues(pairs_filename, priorities_filename):
-    #TODO: identify rogue pairings
+    # identify rogue pairings
 
     pairs = read_pairs(pairs_filename)
     priorities = read_priorities(priorities_filename)
@@ -155,7 +155,34 @@ def find_rogues(pairs_filename, priorities_filename):
 #and the values are the girls.
 def pair(csv_path,boy_set_label,girl_set_label):
     #TODO: implement the Gale-Shapley algorithm
-    return 0
+
+    priorities = read_priorities(csv_path)  # Assume correct implementation
+
+    free_boys = set(priorities[boy_set_label].keys())
+    engagements = {}  # Stores final pairings
+    proposals_made = {boy: [] for boy in free_boys}  # Tracks proposals
+
+    while free_boys:
+        for boy in list(free_boys):  # Iterate over a snapshot of free_boys
+            boy_prefs = priorities[boy_set_label][boy]
+            for girl in boy_prefs:
+                if girl in proposals_made[boy]:
+                    continue  # Skip if this boy has already proposed to this girl
+                proposals_made[boy].append(girl)  # Mark this girl as proposed by this boy
+
+                # Check if the girl is either not engaged or prefers this boy over her current partner
+                if girl not in engagements or (
+                        girl in priorities[girl_set_label] and priorities[girl_set_label][girl].index(boy) <
+                        priorities[girl_set_label][girl].index(engagements[girl])):
+                    # If girl is already engaged, make her current partner free again
+                    if girl in engagements:
+                        free_boys.add(engagements[girl])
+                    engagements[girl] = boy  # Engage this boy with the girl
+                    free_boys.remove(boy)  # This boy is now engaged and not free
+                    break  # Move on to the next free boy
+
+    # Inverting engagements to have boys as keys and girls as values
+    return {v: k for k, v in engagements.items()}
 
 #This is the main program.  For each of the three tasks you've been assigned, it has code to loop
 #through all the files provided.  My suggestion is that you only use it once you have each task
@@ -192,8 +219,8 @@ def main():
         return 0
     
     #task_1()#test Hall's Condition for each
-    task_2()#find rogue pairs for each proposed
-    #task_3()#generate the blue and red optimal solutions for each
+    #task_2()#find rogue pairs for each proposed
+    task_3()#generate the blue and red optimal solutions for each
 
     return 0
    
