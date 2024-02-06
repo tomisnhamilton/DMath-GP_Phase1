@@ -92,7 +92,6 @@ def test_halls(priorities_filename,boy_set_label,girl_set_label):
         from itertools import chain, combinations
         s = list(iterable)
         return chain.from_iterable(combinations(s, r) for r in range(1,len(s)+1))
-    # TODO: test Hall's condition
 
     priorities=read_priorities(priorities_filename)
     # Get preferences for boys and girls
