@@ -4,7 +4,7 @@
 import os
 
 T1_data_path="./data/T1/data/"
-T2_data_path="./data/T2/data/"
+T2_data_path= "./data/T2/data/"
 T2_soln_path="./data/T2/soln/"
 T3_data_path="./data/T3/data/"
 T3_soln_path="./data/T3/soln/"
@@ -93,7 +93,8 @@ def test_halls(priorities_filename,boy_set_label,girl_set_label):
         s = list(iterable)
         return chain.from_iterable(combinations(s, r) for r in range(1,len(s)+1))
 
-    priorities=read_priorities(priorities_filename)
+    # Hall's Condition
+    priorities = read_priorities(priorities_filename)
     # Get preferences for boys and girls
     boy_preferences = priorities[boy_set_label]
     girl_preferences = priorities[girl_set_label]
@@ -111,7 +112,39 @@ def test_halls(priorities_filename,boy_set_label,girl_set_label):
 #return an empty set.
 def find_rogues(pairs_filename, priorities_filename):
     #TODO: identify rogue pairings
-    return 0
+
+    pairs = read_pairs(pairs_filename)
+    priorities = read_priorities(priorities_filename)
+
+    rogues = set()
+
+    # Invert pairs for easy look-up from girls to boys
+    reverse_pairs = {v: k for k, v in pairs.items()}
+
+    for boy, paired_girl in pairs.items():
+        # Check if the boy is in the priorities, if not, skip to the next iteration
+        if boy not in priorities['B']:
+            continue
+
+        boy_preferences = priorities['B'][boy]
+        for preferred_girl in boy_preferences:
+            if preferred_girl == paired_girl:
+                break  # The boy's current partner is found in his preferences before any potential rogue, stop searching
+
+            # Check if the preferred girl and her current boy are in the priorities, if not, continue to the next preferred girl
+            if preferred_girl not in reverse_pairs or preferred_girl not in priorities['R'] or reverse_pairs[
+                preferred_girl] not in priorities['B']:
+                continue
+
+            preferred_girl_current_boy = reverse_pairs[preferred_girl]
+            preferred_girl_preferences = priorities['R'][preferred_girl]
+
+            # Check if the preferred girl ranks this boy higher than her current pairing
+            if boy in preferred_girl_preferences and preferred_girl_preferences.index(
+                    boy) < preferred_girl_preferences.index(preferred_girl_current_boy):
+                rogues.add((boy, preferred_girl))
+    # Return the set of rogue pairs
+    return rogues
 
 
 #This is where you need to implement the Gale-Shapley algorithm on a set of priorities defined
